@@ -1,19 +1,18 @@
-﻿using System.Web.Mvc;
-using System.Web.Routing;
-using Nop.Web.Framework.Mvc.Routes;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
+using Nop.Web.Framework.Mvc.Routing;
 
 namespace Nop.Plugin.DiscountRules.HadSpentAmount
 {
     public partial class RouteProvider : IRouteProvider
     {
-        public void RegisterRoutes(RouteCollection routes)
+        public void RegisterRoutes(IRouteBuilder routeBuilder)
         {
-            routes.MapRoute("Plugin.DiscountRules.HadSpentAmount.Configure",
+            routeBuilder.MapRoute("Plugin.DiscountRules.HadSpentAmount.Configure",
                  "Plugins/DiscountRulesHadSpentAmount/Configure",
-                 new { controller = "DiscountRulesHadSpentAmount", action = "Configure" },
-                 new[] { "Nop.Plugin.DiscountRules.HadSpentAmount.Controllers" }
-            );
+                 new { controller = "DiscountRulesHadSpentAmount", action = "Configure" });
         }
+
         public int Priority
         {
             get

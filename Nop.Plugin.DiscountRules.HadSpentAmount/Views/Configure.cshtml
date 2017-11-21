@@ -1,13 +1,13 @@
 ﻿@{
     Layout = "";
 }
+
 @model Nop.Plugin.DiscountRules.HadSpentAmount.Models.RequirementModel
-@using Nop.Web.Framework;
 
 <script type="text/javascript">
     $(document).ready(function () {
         $('#savehadspentamountrequirement@(Model.RequirementId)').click(function () {
-            var spentAmount = $("#@Html.FieldIdFor(model => model.SpentAmount)").val();
+            var spentAmount = $("#@Html.IdFor(model => model.SpentAmount)").val();
             var discountId = @Model.DiscountId;
             var requirementId = @Model.RequirementId;
 
@@ -32,7 +32,7 @@
                     }
                 },
                 error:function (xhr, ajaxOptions, thrownError){
-                    alert('@Html.Raw(HttpUtility.JavaScriptStringEncode(T("Admin.Promotions.Discounts.Requirements.FailedToSave").Text))');
+                    alert('@Html.Raw(JavaScriptEncoder.Default.Encode(T("Admin.Promotions.Discounts.Requirements.FailedToSave").Text))');
                 }
             });
         });
@@ -41,11 +41,11 @@
 
 <div class="form-group">
     <div class="col-md-3 requirement-label-col">
-        @Html.NopLabelFor(model => model.SpentAmount)
+        <nop-label asp-for="SpentAmount" />
     </div>
     <div class="col-md-9 requirement-data-col">
         <div class="requirement-data-input">
-            @Html.NopEditorFor(model => model.SpentAmount)
+            <nop-editor asp-for="SpentAmount" />
         </div>
         <div class="requirement-data-buttons">
             <input type="button" id="savehadspentamountrequirement@(Model.RequirementId)" class="btn btn-primary" value="@T("Admin.Common.Save")" />

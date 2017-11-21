@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Plugins;
@@ -8,6 +10,7 @@ using Nop.Services.Configuration;
 using Nop.Services.Discounts;
 using Nop.Services.Localization;
 using Nop.Services.Orders;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Nop.Plugin.DiscountRules.HadSpentAmount
 {
@@ -16,14 +19,20 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
         private readonly ILocalizationService _localizationService;
         private readonly ISettingService _settingService;
         private readonly IOrderService _orderService;
+        private readonly IUrlHelperFactory _urlHelperFactory;
+        private readonly IActionContextAccessor _actionContextAccessor;
 
         public HadSpentAmountDiscountRequirementRule(ILocalizationService localizationService,
             ISettingService settingService, 
-            IOrderService orderService)
+            IOrderService orderService,
+            IUrlHelperFactory urlHelperFactory,
+            IActionContextAccessor actionContextAccessor)
         {
             this._localizationService = localizationService;
             this._settingService = settingService;
             this._orderService = orderService;
+            this._actionContextAccessor = actionContextAccessor;
+            this._urlHelperFactory = urlHelperFactory;
         }
 
         /// <summary>
@@ -34,12 +43,12 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
         public DiscountRequirementValidationResult CheckRequirement(DiscountRequirementValidationRequest request)
         {
             if (request == null)
-                throw new ArgumentNullException("request");
+                throw new ArgumentNullException(nameof(request));
 
             //invalid by default
             var result = new DiscountRequirementValidationResult();
 
-            var spentAmountRequirement = _settingService.GetSettingByKey<decimal>(string.Format("DiscountRequirement.HadSpentAmount-{0}", request.DiscountRequirementId));
+            var spentAmountRequirement = _settingService.GetSettingByKey<decimal>($"DiscountRequirement.HadSpentAmount-{request.DiscountRequirementId}");
             if (spentAmountRequirement == decimal.Zero)
             {
                 //valid
@@ -49,10 +58,10 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
 
             if (request.Customer == null || request.Customer.IsGuest())
                 return result;
-            var orders = _orderService.SearchOrders(storeId: request.Store.Id, 
+            var orders = _orderService.SearchOrders(request.Store.Id, 
                 customerId: request.Customer.Id,
-                osIds: new List<int>() { (int)OrderStatus.Complete });
-            decimal spentAmount = orders.Sum(o => o.OrderTotal);
+                osIds: new List<int> { (int)OrderStatus.Complete });
+            var spentAmount = orders.Sum(o => o.OrderTotal);
             if (spentAmount > spentAmountRequirement)
             {
                 result.IsValid = true;
@@ -72,11 +81,9 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
         /// <returns>URL</returns>
         public string GetConfigurationUrl(int discountId, int? discountRequirementId)
         {
-            //configured in RouteProvider.cs
-            string result = "Plugins/DiscountRulesHadSpentAmount/Configure/?discountId=" + discountId;
-            if (discountRequirementId.HasValue)
-                result += string.Format("&discountRequirementId={0}", discountRequirementId.Value);
-            return result;
+            var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            return urlHelper.Action("Configure", "DiscountRulesHadSpentAmount",
+                new { discountId = discountId, discountRequirementId = discountRequirementId }).TrimStart('/');
         }
 
         public override void Install()
