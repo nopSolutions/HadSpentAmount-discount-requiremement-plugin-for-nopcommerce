@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Nop.Core.Domain.Customers;
@@ -10,7 +11,6 @@ using Nop.Services.Configuration;
 using Nop.Services.Discounts;
 using Nop.Services.Localization;
 using Nop.Services.Orders;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Nop.Plugin.DiscountRules.HadSpentAmount
 {
@@ -70,6 +70,7 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
             {
                 result.UserError = _localizationService.GetResource("Plugins.DiscountRules.HadSpentAmount.NotEnough");
             }
+
             return result;
         }
 
@@ -89,18 +90,18 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
         public override void Install()
         {
             //locales
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.Fields.Amount", "Required spent amount");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.Fields.Amount.Hint", "Discount will be applied if customer has spent/purchased x.xx amount.");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.NotEnough", "Sorry, this offer requires more money spent (previously placed orders)");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.Fields.Amount", "Required spent amount");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.Fields.Amount.Hint", "Discount will be applied if customer has spent/purchased x.xx amount.");
+            _localizationService.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.NotEnough", "Sorry, this offer requires more money spent (previously placed orders)");
             base.Install();
         }
 
         public override void Uninstall()
         {
             //locales
-            this.DeletePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.Fields.Amount");
-            this.DeletePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.Fields.Amount.Hint");
-            this.DeletePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.NotEnough");
+            _localizationService.DeletePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.Fields.Amount");
+            _localizationService.DeletePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.Fields.Amount.Hint");
+            _localizationService.DeletePluginLocaleResource("Plugins.DiscountRules.HadSpentAmount.NotEnough");
             base.Uninstall();
         }
     }
