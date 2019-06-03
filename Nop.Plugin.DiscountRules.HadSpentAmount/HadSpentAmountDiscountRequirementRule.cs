@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
@@ -7,11 +7,12 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
-using Nop.Core.Plugins;
+using Nop.Services.Plugins;
 using Nop.Services.Configuration;
 using Nop.Services.Discounts;
 using Nop.Services.Localization;
 using Nop.Services.Orders;
+using Nop.Core;
 
 namespace Nop.Plugin.DiscountRules.HadSpentAmount
 {
@@ -22,18 +23,21 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
         private readonly IOrderService _orderService;
         private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly IActionContextAccessor _actionContextAccessor;
+        private readonly IWebHelper _webHelper;
 
         public HadSpentAmountDiscountRequirementRule(ILocalizationService localizationService,
             ISettingService settingService, 
             IOrderService orderService,
             IUrlHelperFactory urlHelperFactory,
-            IActionContextAccessor actionContextAccessor)
+            IActionContextAccessor actionContextAccessor,
+            IWebHelper webHelper)
         {
-            this._localizationService = localizationService;
-            this._settingService = settingService;
-            this._orderService = orderService;
-            this._actionContextAccessor = actionContextAccessor;
-            this._urlHelperFactory = urlHelperFactory;
+            _localizationService = localizationService;
+            _settingService = settingService;
+            _orderService = orderService;
+            _actionContextAccessor = actionContextAccessor;
+            _urlHelperFactory = urlHelperFactory;
+            _webHelper = webHelper;
         }
 
         /// <summary>
@@ -84,14 +88,9 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
         public string GetConfigurationUrl(int discountId, int? discountRequirementId)
         {
             var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-            var url = new PathString(urlHelper.Action("Configure", "DiscountRulesHadSpentAmount",
-                new { discountId = discountId, discountRequirementId = discountRequirementId }));
 
-            //remove the application path from the generated URL if exists
-            var pathBase = _actionContextAccessor.ActionContext?.HttpContext?.Request?.PathBase ?? PathString.Empty;
-            url.StartsWithSegments(pathBase, out url);
-
-            return url.Value.TrimStart('/');
+            return urlHelper.Action("Configure", "DiscountRulesHadSpentAmount",
+                new { discountId = discountId, discountRequirementId = discountRequirementId }, _webHelper.CurrentRequestProtocol);
         }
 
         public override void Install()
