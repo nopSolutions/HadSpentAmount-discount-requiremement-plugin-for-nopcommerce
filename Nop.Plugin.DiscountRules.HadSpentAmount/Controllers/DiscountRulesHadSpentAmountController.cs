@@ -18,16 +18,16 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
     public class DiscountRulesHadSpentAmountController : BasePluginController
     {
         private readonly IDiscountService _discountService;
-        private readonly ISettingService _settingService;
         private readonly IPermissionService _permissionService;
+        private readonly ISettingService _settingService;
 
         public DiscountRulesHadSpentAmountController(IDiscountService discountService,
-            ISettingService settingService, 
+            ISettingService settingService,
             IPermissionService permissionService)
         {
-            this._discountService = discountService;
-            this._settingService = settingService;
-            this._permissionService = permissionService;
+            _discountService = discountService;
+            _permissionService = permissionService;
+            _settingService = settingService;
 
             // little hack here
             //always set culture to 'en-US' (Telerik has a bug related to editing decimal values in other cultures). Like currently it's done for admin area in Global.asax.cs
@@ -94,7 +94,7 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
                 };
                 discount.DiscountRequirements.Add(discountRequirement);
                 _discountService.UpdateDiscount(discount);
-                
+
                 _settingService.SetSetting($"DiscountRequirement.HadSpentAmount-{discountRequirement.Id}", spentAmount);
             }
             return Json(new { Result = true, NewRequirementId = discountRequirement.Id });

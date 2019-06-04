@@ -23,7 +23,7 @@
                 type: "POST",
                 url: "@(Url.Action("Configure", "DiscountRulesHadSpentAmount"))",
                 data: postData,
-                success: function (data) {
+                success: function (data, textStatus, jqXHR) {
                     $('#pnl-save-requirement-result@(Model.RequirementId)').fadeIn("slow").delay(1000).fadeOut("slow");
                     //notify parent if it's a new requirement
                     @if (Model.RequirementId == 0)
@@ -31,8 +31,8 @@
                         <text>$("#discountRequirementContainer").trigger('nopnewdiscountruleadded', [data.NewRequirementId]);</text>
                     }
                 },
-                error:function (xhr, ajaxOptions, thrownError){
-                    alert('@Html.Raw(JavaScriptEncoder.Default.Encode(T("Admin.Promotions.Discounts.Requirements.FailedToSave").Text))');
+                error: function (jqXHR, textStatus, errorThrown){
+                    $("#savehadspentamountrequirementAlert").click();
                 }
             });
         });
@@ -59,3 +59,4 @@
         </div>
     </div>
 </div>
+<nop-alert asp-alert-id="savehadspentamountrequirementAlert" asp-alert-message="@T("Admin.Promotions.Discounts.Requirements.FailedToSave")" />

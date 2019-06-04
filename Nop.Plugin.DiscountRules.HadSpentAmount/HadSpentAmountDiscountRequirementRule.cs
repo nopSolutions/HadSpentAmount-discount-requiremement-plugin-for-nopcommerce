@@ -1,41 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Nop.Core;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
-using Nop.Services.Plugins;
 using Nop.Services.Configuration;
 using Nop.Services.Discounts;
 using Nop.Services.Localization;
 using Nop.Services.Orders;
-using Nop.Core;
+using Nop.Services.Plugins;
 
 namespace Nop.Plugin.DiscountRules.HadSpentAmount
 {
     public partial class HadSpentAmountDiscountRequirementRule : BasePlugin, IDiscountRequirementRule
     {
-        private readonly ILocalizationService _localizationService;
-        private readonly ISettingService _settingService;
-        private readonly IOrderService _orderService;
-        private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly IActionContextAccessor _actionContextAccessor;
+        private readonly ILocalizationService _localizationService;
+        private readonly IOrderService _orderService;
+        private readonly ISettingService _settingService;
+        private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly IWebHelper _webHelper;
 
-        public HadSpentAmountDiscountRequirementRule(ILocalizationService localizationService,
-            ISettingService settingService, 
+        public HadSpentAmountDiscountRequirementRule(IActionContextAccessor actionContextAccessor,
+            ILocalizationService localizationService,
             IOrderService orderService,
-            IUrlHelperFactory urlHelperFactory,
-            IActionContextAccessor actionContextAccessor,
+            ISettingService settingService,            
+            IUrlHelperFactory urlHelperFactory,            
             IWebHelper webHelper)
         {
-            _localizationService = localizationService;
-            _settingService = settingService;
-            _orderService = orderService;
             _actionContextAccessor = actionContextAccessor;
+            _localizationService = localizationService;
+            _orderService = orderService;
+            _settingService = settingService;                        
             _urlHelperFactory = urlHelperFactory;
             _webHelper = webHelper;
         }
@@ -63,7 +62,7 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
 
             if (request.Customer == null || request.Customer.IsGuest())
                 return result;
-            var orders = _orderService.SearchOrders(request.Store.Id, 
+            var orders = _orderService.SearchOrders(request.Store.Id,
                 customerId: request.Customer.Id,
                 osIds: new List<int> { (int)OrderStatus.Complete });
             var spentAmount = orders.Sum(o => o.OrderTotal);
