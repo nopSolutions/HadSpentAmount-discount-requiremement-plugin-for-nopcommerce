@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Nop.Core;
 using Nop.Core.Domain.Discounts;
 using Nop.Plugin.DiscountRules.HadSpentAmount.Models;
 using Nop.Services.Configuration;
@@ -15,6 +15,7 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
 {
     [AuthorizeAdmin]
     [Area(AreaNames.Admin)]
+    [AutoValidateAntiforgeryToken]
     public class DiscountRulesHadSpentAmountController : BasePluginController
     {
         private readonly IDiscountService _discountService;
@@ -28,10 +29,6 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
             _discountService = discountService;
             _permissionService = permissionService;
             _settingService = settingService;
-
-            // little hack here
-            //always set culture to 'en-US' (Telerik has a bug related to editing decimal values in other cultures). Like currently it's done for admin area in Global.asax.cs
-            CommonHelper.SetTelerikCulture();
         }
 
         public IActionResult Configure(int discountId, int? discountRequirementId)
@@ -43,14 +40,11 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
             if (discount == null)
                 throw new ArgumentException("Discount could not be loaded");
 
-            if (discountRequirementId.HasValue)
-            {
-                var discountRequirement = discount.DiscountRequirements.FirstOrDefault(dr => dr.Id == discountRequirementId.Value);
-                if (discountRequirement == null)
-                    return Content("Failed to load requirement.");
-            }
+            //check whether the discount requirement exists
+            if (discountRequirementId.HasValue && _discountService.GetDiscountRequirementById(discountRequirementId.Value) is null)
+                return Content("Failed to load requirement.");
 
-            var spentAmountRequirement = _settingService.GetSettingByKey<decimal>($"DiscountRequirement.HadSpentAmount-{discountRequirementId ?? 0}");
+            var spentAmountRequirement = _settingService.GetSettingByKey<decimal>(string.Format(DiscountRequirementDefaults.SettingsKey, discountRequirementId ?? 0));
 
             var model = new RequirementModel
             {
@@ -60,44 +54,55 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
             };
 
             //add a prefix
-            ViewData.TemplateInfo.HtmlFieldPrefix = $"DiscountRulesHadSpentAmount{discountRequirementId?.ToString() ?? "0"}";
+            ViewData.TemplateInfo.HtmlFieldPrefix = string.Format(DiscountRequirementDefaults.HtmlFieldPrefix, discountRequirementId ?? 0);
 
             return View("~/Plugins/DiscountRules.HadSpentAmount/Views/Configure.cshtml", model);
         }
 
         [HttpPost]
-        [AdminAntiForgery]
-        public IActionResult Configure(int discountId, int? discountRequirementId, decimal spentAmount)
+        public IActionResult Configure(RequirementModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageDiscounts))
                 return Content("Access denied");
 
-            var discount = _discountService.GetDiscountById(discountId);
-            if (discount == null)
-                throw new ArgumentException("Discount could not be loaded");
-
-            DiscountRequirement discountRequirement = null;
-            if (discountRequirementId.HasValue)
-                discountRequirement = discount.DiscountRequirements.FirstOrDefault(dr => dr.Id == discountRequirementId.Value);
-
-            if (discountRequirement != null)
+            if (ModelState.IsValid)
             {
-                //update existing rule
-                _settingService.SetSetting($"DiscountRequirement.HadSpentAmount-{discountRequirement.Id}", spentAmount);
-            }
-            else
-            {
-                //save new rule
-                discountRequirement = new DiscountRequirement
+                //load the discount
+                var discount = _discountService.GetDiscountById(model.DiscountId);
+                if (discount == null)
+                    return NotFound(new { Errors = new[] { "Discount could not be loaded" } });
+
+                //get the discount requirement
+                var discountRequirement = _discountService.GetDiscountRequirementById(model.RequirementId);
+
+                //the discount requirement does not exist, so create a new one
+                if (discountRequirement == null)
                 {
-                    DiscountRequirementRuleSystemName = "DiscountRequirement.HadSpentAmount"
-                };
-                discount.DiscountRequirements.Add(discountRequirement);
-                _discountService.UpdateDiscount(discount);
+                    discountRequirement = new DiscountRequirement
+                    {
+                        DiscountId = discount.Id,
+                        DiscountRequirementRuleSystemName = DiscountRequirementDefaults.SystemName
+                    };
 
-                _settingService.SetSetting($"DiscountRequirement.HadSpentAmount-{discountRequirement.Id}", spentAmount);
+                    _discountService.InsertDiscountRequirement(discountRequirement);
+                }
+
+                //save restricted customer role identifier
+                _settingService.SetSetting(string.Format(DiscountRequirementDefaults.SettingsKey, discountRequirement.Id), model.SpentAmount);
+
+                return Ok(new { NewRequirementId = discountRequirement.Id });
             }
-            return Json(new { Result = true, NewRequirementId = discountRequirement.Id });
+
+            return BadRequest(new { Errors = GetErrorsFromModelState() });
         }
+
+        #region Utilities
+
+        private IEnumerable<string> GetErrorsFromModelState()
+        {
+            return ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+        }
+
+        #endregion
     }
 }

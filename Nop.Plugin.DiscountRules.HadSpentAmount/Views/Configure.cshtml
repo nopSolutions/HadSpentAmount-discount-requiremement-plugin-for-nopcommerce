@@ -12,9 +12,9 @@
             var requirementId = @Model.RequirementId;
 
             var postData = {
-                discountId: discountId,
-                discountRequirementId: requirementId,
-                spentAmount: spentAmount
+                DiscountId: discountId,
+                RequirementId: requirementId,
+                SpentAmount: spentAmount
             };
             addAntiForgeryToken(postData);
 
@@ -31,7 +31,22 @@
                         <text>$("#discountRequirementContainer").trigger('nopnewdiscountruleadded', [data.NewRequirementId]);</text>
                     }
                 },
-                error: function (jqXHR, textStatus, errorThrown){
+                error: function (jqXHR, textStatus, errorThrown) {
+                    var $alertInfoEl = $("#savehadspentamountrequirementAlert-info");
+                    let response = jqXHR.responseJSON;
+                    if (response instanceof Object && response.hasOwnProperty('Errors')) {
+                        var errorMessages = '';
+                        $.each(response.Errors, function (i, error) {
+                            errorMessages += error;
+                            if (response.Errors.length - 1 != i)
+                                errorMessages += '</br>';
+                        });
+                        $alertInfoEl.html(errorMessages);
+                    } else {
+                        // display default error
+                        $alertInfoEl.html('@T("Admin.Promotions.Discounts.Requirements.FailedToSave")');
+                    }
+
                     $("#savehadspentamountrequirementAlert").click();
                 }
             });
@@ -59,4 +74,4 @@
         </div>
     </div>
 </div>
-<nop-alert asp-alert-id="savehadspentamountrequirementAlert" asp-alert-message="@T("Admin.Promotions.Discounts.Requirements.FailedToSave")" />
+<nop-alert asp-alert-id="savehadspentamountrequirementAlert" />
