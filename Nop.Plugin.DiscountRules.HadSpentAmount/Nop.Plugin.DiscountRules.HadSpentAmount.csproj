@@ -6,7 +6,7 @@
     <Company>Nop Solutions, Ltd</Company> 
     <Authors>Nop Solutions, Ltd</Authors> 
     <PackageLicenseUrl></PackageLicenseUrl> 
-    <PackageProjectUrl>https://www.nopcommerce.com/p/2702/had-spent-amount-discount-requirement-rule-nopcommerce-team.aspx</PackageProjectUrl> 
+    <PackageProjectUrl>https://www.nopcommerce.com/had-spent-amount-discount-requirement-rule</PackageProjectUrl> 
     <RepositoryUrl>https://github.com/nopSolutions/HadSpentAmount-discount-requiremement-plugin-for-nopcommerce</RepositoryUrl> 
     <RepositoryType>Git</RepositoryType>
     <OutputPath>..\..\Presentation\Nop.Web\Plugins\DiscountRules.HadSpentAmount</OutputPath>
