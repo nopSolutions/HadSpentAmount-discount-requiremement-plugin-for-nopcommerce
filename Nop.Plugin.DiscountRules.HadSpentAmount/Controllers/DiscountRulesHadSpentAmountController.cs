@@ -44,7 +44,7 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
             if (discountRequirementId.HasValue && _discountService.GetDiscountRequirementById(discountRequirementId.Value) is null)
                 return Content("Failed to load requirement.");
 
-            var spentAmountRequirement = _settingService.GetSettingByKey<decimal>(string.Format(DiscountRequirementDefaults.SettingsKey, discountRequirementId ?? 0));
+            var spentAmountRequirement = _settingService.GetSettingByKey<decimal>(string.Format(DiscountRequirementDefaults.SETTINGS_KEY, discountRequirementId ?? 0));
 
             var model = new RequirementModel
             {
@@ -54,7 +54,7 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
             };
 
             //add a prefix
-            ViewData.TemplateInfo.HtmlFieldPrefix = string.Format(DiscountRequirementDefaults.HtmlFieldPrefix, discountRequirementId ?? 0);
+            ViewData.TemplateInfo.HtmlFieldPrefix = string.Format(DiscountRequirementDefaults.HTML_FIELD_PREFIX, discountRequirementId ?? 0);
 
             return View("~/Plugins/DiscountRules.HadSpentAmount/Views/Configure.cshtml", model);
         }
@@ -81,14 +81,14 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
                     discountRequirement = new DiscountRequirement
                     {
                         DiscountId = discount.Id,
-                        DiscountRequirementRuleSystemName = DiscountRequirementDefaults.SystemName
+                        DiscountRequirementRuleSystemName = DiscountRequirementDefaults.SYSTEM_NAME
                     };
 
                     _discountService.InsertDiscountRequirement(discountRequirement);
                 }
 
                 //save restricted customer role identifier
-                _settingService.SetSetting(string.Format(DiscountRequirementDefaults.SettingsKey, discountRequirement.Id), model.SpentAmount);
+                _settingService.SetSetting(string.Format(DiscountRequirementDefaults.SETTINGS_KEY, discountRequirement.Id), model.SpentAmount);
 
                 return Ok(new { NewRequirementId = discountRequirement.Id });
             }

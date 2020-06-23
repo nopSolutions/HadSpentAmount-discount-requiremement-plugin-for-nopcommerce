@@ -118,7 +118,7 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
         {
             //discount requirements
             var discountRequirements = _discountService.GetAllDiscountRequirements()
-                .Where(discountRequirement => discountRequirement.DiscountRequirementRuleSystemName == DiscountRequirementDefaults.SystemName);
+                .Where(discountRequirement => discountRequirement.DiscountRequirementRuleSystemName == DiscountRequirementDefaults.SYSTEM_NAME);
             foreach (var discountRequirement in discountRequirements)
             {
                 _discountService.DeleteDiscountRequirement(discountRequirement, false);

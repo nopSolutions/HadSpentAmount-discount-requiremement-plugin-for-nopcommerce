@@ -8,16 +8,16 @@
         /// <summary>
         /// The system name of the discount requirement rule
         /// </summary>
-        public const string SystemName = "DiscountRequirement.HadSpentAmount";
+        public const string SYSTEM_NAME = "DiscountRequirement.HadSpentAmount";
 
         /// <summary>
         /// The key of the settings to save restricted customer roles
         /// </summary>
-        public const string SettingsKey = "DiscountRequirement.HadSpentAmount-{0}";
+        public const string SETTINGS_KEY = "DiscountRequirement.HadSpentAmount-{0}";
 
         /// <summary>
         /// The HTML field prefix for discount requirements
         /// </summary>
-        public const string HtmlFieldPrefix = "DiscountRulesHadSpentAmount{0}";
+        public const string HTML_FIELD_PREFIX = "DiscountRulesHadSpentAmount{0}";
     }
 }
