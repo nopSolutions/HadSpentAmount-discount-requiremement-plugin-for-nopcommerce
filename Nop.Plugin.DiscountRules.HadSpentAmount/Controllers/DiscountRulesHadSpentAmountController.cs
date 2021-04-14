@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Nop.Core.Domain.Discounts;
 using Nop.Plugin.DiscountRules.HadSpentAmount.Models;
@@ -31,20 +32,20 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
             _settingService = settingService;
         }
 
-        public IActionResult Configure(int discountId, int? discountRequirementId)
+        public async Task<IActionResult> Configure(int discountId, int? discountRequirementId)
         {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageDiscounts))
+            if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageDiscounts))
                 return Content("Access denied");
 
-            var discount = _discountService.GetDiscountById(discountId);
+            var discount = await _discountService.GetDiscountByIdAsync(discountId);
             if (discount == null)
                 throw new ArgumentException("Discount could not be loaded");
 
             //check whether the discount requirement exists
-            if (discountRequirementId.HasValue && _discountService.GetDiscountRequirementById(discountRequirementId.Value) is null)
+            if (discountRequirementId.HasValue && await _discountService.GetDiscountRequirementByIdAsync(discountRequirementId.Value) is null)
                 return Content("Failed to load requirement.");
 
-            var spentAmountRequirement = _settingService.GetSettingByKey<decimal>(string.Format(DiscountRequirementDefaults.SETTINGS_KEY, discountRequirementId ?? 0));
+            var spentAmountRequirement = await _settingService.GetSettingByKeyAsync<decimal>(string.Format(DiscountRequirementDefaults.SETTINGS_KEY, discountRequirementId ?? 0));
 
             var model = new RequirementModel
             {
@@ -60,20 +61,20 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
         }
 
         [HttpPost]
-        public IActionResult Configure(RequirementModel model)
+        public async Task<IActionResult> Configure(RequirementModel model)
         {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageDiscounts))
+            if (!await _permissionService.AuthorizeAsync(StandardPermissionProvider.ManageDiscounts))
                 return Content("Access denied");
 
             if (ModelState.IsValid)
             {
                 //load the discount
-                var discount = _discountService.GetDiscountById(model.DiscountId);
+                var discount = await _discountService.GetDiscountByIdAsync(model.DiscountId);
                 if (discount == null)
                     return NotFound(new { Errors = new[] { "Discount could not be loaded" } });
 
                 //get the discount requirement
-                var discountRequirement = _discountService.GetDiscountRequirementById(model.RequirementId);
+                var discountRequirement = await _discountService.GetDiscountRequirementByIdAsync(model.RequirementId);
 
                 //the discount requirement does not exist, so create a new one
                 if (discountRequirement == null)
@@ -84,11 +85,11 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Controllers
                         DiscountRequirementRuleSystemName = DiscountRequirementDefaults.SYSTEM_NAME
                     };
 
-                    _discountService.InsertDiscountRequirement(discountRequirement);
+                    await _discountService.InsertDiscountRequirementAsync(discountRequirement);
                 }
 
                 //save restricted customer role identifier
-                _settingService.SetSetting(string.Format(DiscountRequirementDefaults.SETTINGS_KEY, discountRequirement.Id), model.SpentAmount);
+                await _settingService.SetSettingAsync(string.Format(DiscountRequirementDefaults.SETTINGS_KEY, discountRequirement.Id), model.SpentAmount);
 
                 return Ok(new { NewRequirementId = discountRequirement.Id });
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -49,8 +50,11 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
         /// Check discount requirement
         /// </summary>
         /// <param name="request">Object that contains all information required to check the requirement (Current customer, discount, etc)</param>
-        /// <returns>Result</returns>
-        public DiscountRequirementValidationResult CheckRequirement(DiscountRequirementValidationRequest request)
+        /// <returns>
+        /// A task that represents the asynchronous operation
+        /// The task result contains the result
+        /// </returns>
+        public async Task<DiscountRequirementValidationResult> CheckRequirementAsync(DiscountRequirementValidationRequest request)
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
@@ -58,7 +62,7 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
             //invalid by default
             var result = new DiscountRequirementValidationResult();
 
-            var spentAmountRequirement = _settingService.GetSettingByKey<decimal>($"DiscountRequirement.HadSpentAmount-{request.DiscountRequirementId}");
+            var spentAmountRequirement = await _settingService.GetSettingByKeyAsync<decimal>($"DiscountRequirement.HadSpentAmount-{request.DiscountRequirementId}");
             if (spentAmountRequirement == decimal.Zero)
             {
                 //valid
@@ -66,10 +70,10 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
                 return result;
             }
 
-            if (request.Customer == null || _customerService.IsGuest(request.Customer))
+            if (request.Customer == null || await _customerService.IsGuestAsync(request.Customer))
                 return result;
 
-            var orders = _orderService.SearchOrders(request.Store.Id,
+            var orders = await _orderService.SearchOrdersAsync(request.Store.Id,
                 customerId: request.Customer.Id,
                 osIds: new List<int> { (int)OrderStatus.Complete });
             var spentAmount = orders.Sum(o => o.OrderTotal);
@@ -79,7 +83,7 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
             }
             else
             {
-                result.UserError = _localizationService.GetResource("Plugins.DiscountRules.HadSpentAmount.NotEnough");
+                result.UserError = await _localizationService.GetResourceAsync("Plugins.DiscountRules.HadSpentAmount.NotEnough");
             }
 
             return result;
@@ -96,13 +100,17 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
             var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
             return urlHelper.Action("Configure", "DiscountRulesHadSpentAmount",
-                new { discountId = discountId, discountRequirementId = discountRequirementId }, _webHelper.CurrentRequestProtocol);
+                new { discountId = discountId, discountRequirementId = discountRequirementId }, _webHelper.GetCurrentRequestProtocol());
         }
 
-        public override void Install()
+        /// <summary>
+        /// Install the plugin
+        /// </summary>
+        /// <returns>A task that represents the asynchronous operation</returns>
+        public override async Task InstallAsync()
         {
             //locales
-            _localizationService.AddPluginLocaleResource(new Dictionary<string, string>
+            await _localizationService.AddLocaleResourceAsync(new Dictionary<string, string>
             {
                 ["Plugins.DiscountRules.HadSpentAmount.Fields.Amount"] = "Required spent amount",
                 ["Plugins.DiscountRules.HadSpentAmount.Fields.Amount.Hint"] = "Discount will be applied if customer has spent/purchased x.xx amount.",
@@ -111,23 +119,27 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
                 ["Plugins.DiscountRules.HadSpentAmount.Fields.DiscountId.Required"] = "Discount is required"
             });
 
-            base.Install();
+            await base.InstallAsync();
         }
 
-        public override void Uninstall()
+        /// <summary>
+        /// Uninstall the plugin
+        /// </summary>
+        /// <returns>A task that represents the asynchronous operation</returns>
+        public override async Task UninstallAsync()
         {
             //discount requirements
-            var discountRequirements = _discountService.GetAllDiscountRequirements()
+            var discountRequirements = (await _discountService.GetAllDiscountRequirementsAsync())
                 .Where(discountRequirement => discountRequirement.DiscountRequirementRuleSystemName == DiscountRequirementDefaults.SYSTEM_NAME);
             foreach (var discountRequirement in discountRequirements)
             {
-                _discountService.DeleteDiscountRequirement(discountRequirement, false);
+                await _discountService.DeleteDiscountRequirementAsync(discountRequirement, false);
             }
 
             //locales
-            _localizationService.DeletePluginLocaleResources("Plugins.DiscountRules.HadSpentAmount");
+            await _localizationService.DeleteLocaleResourcesAsync("Plugins.DiscountRules.HadSpentAmount");
 
-            base.Uninstall();
+            await base.UninstallAsync();
         }
     }
 }

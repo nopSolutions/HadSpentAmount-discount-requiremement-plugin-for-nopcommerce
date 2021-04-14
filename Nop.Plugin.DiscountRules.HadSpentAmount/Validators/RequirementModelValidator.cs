@@ -14,10 +14,10 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount.Validators
         {
             RuleFor(model => model.DiscountId)
                 .NotEmpty()
-                .WithMessage(localizationService.GetResource("Plugins.DiscountRules.HadSpentAmount.Fields.DiscountId.Required"));
+                .WithMessageAwait(localizationService.GetResourceAsync("Plugins.DiscountRules.HadSpentAmount.Fields.DiscountId.Required"));
             RuleFor(model => model.SpentAmount)
                 .GreaterThan(0)
-                .WithMessage(localizationService.GetResource("Plugins.DiscountRules.HadSpentAmount.Fields.SpentAmount.Required"));
+                .WithMessageAwait(localizationService.GetResourceAsync("Plugins.DiscountRules.HadSpentAmount.Fields.SpentAmount.Required"));
         }
     }
 }
