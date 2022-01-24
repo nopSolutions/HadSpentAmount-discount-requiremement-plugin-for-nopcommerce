@@ -110,7 +110,7 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount
         public override async Task InstallAsync()
         {
             //locales
-            await _localizationService.AddLocaleResourceAsync(new Dictionary<string, string>
+            await _localizationService.AddOrUpdateLocaleResourceAsync(new Dictionary<string, string>
             {
                 ["Plugins.DiscountRules.HadSpentAmount.Fields.Amount"] = "Required spent amount",
                 ["Plugins.DiscountRules.HadSpentAmount.Fields.Amount.Hint"] = "Discount will be applied if customer has spent/purchased x.xx amount.",
