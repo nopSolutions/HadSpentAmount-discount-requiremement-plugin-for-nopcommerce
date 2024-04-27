@@ -1,14 +1,13 @@
 ﻿using Nop.Web.Framework.Mvc.ModelBinding;
 
-namespace Nop.Plugin.DiscountRules.HadSpentAmount.Models
+namespace Nop.Plugin.DiscountRules.HadSpentAmount.Models;
+
+public record RequirementModel
 {
-    public record RequirementModel
-    {
-        public int DiscountId { get; set; }
+    public int DiscountId { get; set; }
 
-        public int RequirementId { get; set; }
+    public int RequirementId { get; set; }
 
-        [NopResourceDisplayName("Plugins.DiscountRules.HadSpentAmount.Fields.Amount")]
-        public decimal SpentAmount { get; set; }
-    }
+    [NopResourceDisplayName("Plugins.DiscountRules.HadSpentAmount.Fields.Amount")]
+    public decimal SpentAmount { get; set; }
 }

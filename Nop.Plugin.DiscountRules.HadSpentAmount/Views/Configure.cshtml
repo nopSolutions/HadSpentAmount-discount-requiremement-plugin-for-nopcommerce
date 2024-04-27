@@ -5,8 +5,8 @@
 @model Nop.Plugin.DiscountRules.HadSpentAmount.Models.RequirementModel
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        $('#savehadspentamountrequirement@(Model.RequirementId)').click(function () {
+    $(function () {
+        $('#savehadspentamountrequirement@(Model.RequirementId)').on("click", function() {
             var spentAmount = $("#@Html.IdFor(model => model.SpentAmount)").val();
             var discountId = @Model.DiscountId;
             var requirementId = @Model.RequirementId;
@@ -47,7 +47,7 @@
                         $alertInfoEl.html('@T("Admin.Promotions.Discounts.Requirements.FailedToSave")');
                     }
 
-                    $("#savehadspentamountrequirementAlert").click();
+                    $("#savehadspentamountrequirementAlert").trigger("click");
                 }
             });
         });
