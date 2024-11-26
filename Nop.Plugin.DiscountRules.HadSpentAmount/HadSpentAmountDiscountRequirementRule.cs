@@ -14,6 +14,8 @@ namespace Nop.Plugin.DiscountRules.HadSpentAmount;
 
 public partial class HadSpentAmountDiscountRequirementRule : BasePlugin, IDiscountRequirementRule
 {
+    #region Fields
+
     private readonly IActionContextAccessor _actionContextAccessor;
     private readonly ICustomerService _customerService;
     private readonly IDiscountService _discountService;
@@ -22,6 +24,10 @@ public partial class HadSpentAmountDiscountRequirementRule : BasePlugin, IDiscou
     private readonly ISettingService _settingService;
     private readonly IUrlHelperFactory _urlHelperFactory;
     private readonly IWebHelper _webHelper;
+
+    #endregion
+
+    #region Ctor
 
     public HadSpentAmountDiscountRequirementRule(IActionContextAccessor actionContextAccessor,
         ICustomerService customerService,
@@ -41,6 +47,10 @@ public partial class HadSpentAmountDiscountRequirementRule : BasePlugin, IDiscou
         _urlHelperFactory = urlHelperFactory;
         _webHelper = webHelper;
     }
+
+    #endregion
+
+    #region Methods
 
     /// <summary>
     /// Check discount requirement
@@ -95,7 +105,7 @@ public partial class HadSpentAmountDiscountRequirementRule : BasePlugin, IDiscou
         var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
 
         return urlHelper.Action("Configure", "DiscountRulesHadSpentAmount",
-            new { discountId = discountId, discountRequirementId = discountRequirementId }, _webHelper.GetCurrentRequestProtocol());
+            new { discountId, discountRequirementId }, _webHelper.GetCurrentRequestProtocol());
     }
 
     /// <summary>
@@ -126,14 +136,15 @@ public partial class HadSpentAmountDiscountRequirementRule : BasePlugin, IDiscou
         //discount requirements
         var discountRequirements = (await _discountService.GetAllDiscountRequirementsAsync())
             .Where(discountRequirement => discountRequirement.DiscountRequirementRuleSystemName == DiscountRequirementDefaults.SYSTEM_NAME);
+
         foreach (var discountRequirement in discountRequirements)
-        {
             await _discountService.DeleteDiscountRequirementAsync(discountRequirement, false);
-        }
 
         //locales
         await _localizationService.DeleteLocaleResourcesAsync("Plugins.DiscountRules.HadSpentAmount");
 
         await base.UninstallAsync();
     }
+
+    #endregion
 }
