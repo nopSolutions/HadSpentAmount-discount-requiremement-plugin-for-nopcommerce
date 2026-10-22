@@ -19,4 +19,9 @@ public static class DiscountRequirementDefaults
     /// The HTML field prefix for discount requirements
     /// </summary>
     public const string HTML_FIELD_PREFIX = "DiscountRulesHadSpentAmount{0}";
+
+    /// <summary>
+    /// Gets the configuration route name
+    /// </summary>
+    public static string ConfigurationRouteName => "DiscountRequirement.HadSpentAmount.Configure";
 }
